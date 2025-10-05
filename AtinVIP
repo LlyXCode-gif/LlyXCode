@@ -1,15 +1,5 @@
--- Atin PS with Kavo UI (Auto ON + On/Off Tabs + Status Label)
-
--- Load Kavo UI
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("AtinPS Auto", "DarkTheme")
-
--- Tabs
-local TabOn  = Window:NewTab("On")
-local TabOff = Window:NewTab("Off")
-
-local SectionOn  = TabOn:NewSection("Control Auto")
-local SectionOff = TabOff:NewSection("Control Auto")
+-- Atin PS Auto (Tanpa UI, Langsung Jalan)
+-- CP26 -> Puncak -> AutoExec -> Rejoin Private
 
 -- ====== CONFIG ======
 local PRIVATE_PLACE_ID = 123224294054165
@@ -61,31 +51,20 @@ local function queueAuto(url)
     end
 end
 
--- ====== STATE ======
-local running  = false
-local stopFlag = false
-local Status   = "Idle"
-
-local function setStatus(txt)
-    Status = txt
-    print("[AtinPS] Status:", txt)
-end
-
-local function runAuto()
-    running = true
-    stopFlag = false
-    setStatus("Running")
+-- ====== AUTO RUN ======
+task.spawn(function()
+    print("[AtinPS] Auto started")
 
     -- CP26
     for i=1, REPEAT_26 do
-        if stopFlag then setStatus("Stopped") return end
+        if getgenv().STOP then warn("[AtinPS] Stopped at CP26") return end
         tpInstant(POS_CP26)
         task.wait(DELAY)
     end
 
     -- Puncak
     for i=1, REPEAT_PUNC do
-        if stopFlag then setStatus("Stopped") return end
+        if getgenv().STOP then warn("[AtinPS] Stopped at Puncak") return end
         tpInstant(POS_PUNCAK)
         task.wait(DELAY)
     end
@@ -95,7 +74,7 @@ local function runAuto()
 
     -- Rejoin
     task.wait(ASK_DELAY)
-    if stopFlag then setStatus("Stopped") return end
+    if getgenv().STOP then warn("[AtinPS] Stopped before rejoin") return end
 
     local ok, err = pcall(function()
         local jd = player:GetJoinData()
@@ -112,27 +91,7 @@ local function runAuto()
     end)
 
     if not ok then
-        warn("[RzMods][Rejoin] gagal:", err)
+        warn("[AtinPS] Rejoin gagal:", err)
         pcall(function() TeleportService:Teleport(PRIVATE_PLACE_ID, player) end)
     end
-end
-
--- ====== UI Controls ======
-SectionOn:NewLabel("Status: Idle (cek di console print juga)")
-
-SectionOn:NewButton("Start Auto", "Mulai jalankan auto teleport + rejoin", function()
-    if not running then
-        task.spawn(runAuto)
-    else
-        setStatus("Already Running")
-    end
 end)
-
-SectionOff:NewButton("Stop Auto", "Hentikan auto script", function()
-    stopFlag = true
-    running = false
-    setStatus("Stopped")
-end)
-
--- ====== AUTO START ======
-task.spawn(runAuto)
