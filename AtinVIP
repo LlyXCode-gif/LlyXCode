@@ -1,13 +1,20 @@
--- Atin PS with X2ZU UI (Auto ON + On/Off Tabs)
--- Load X2ZU UI Library
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/x2zu/OPEN-SOURCE-UI-ROBLOX/refs/heads/main/X2ZU%20UI%20ROBLOX%20OPEN%20SOURCE/DummyUi-leak-by-x2zu/fetching-main/Tools/Framework.luau"))()
+-- Atin PS with Rayfield UI (Auto ON + On/Off Tabs + Status Label)
+-- Load Rayfield UI
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
--- Window
-local Window = Library:Window({Title = "AtinPS", SubTitle = "Auto Rejoin + AutoExec"})
+local Window = Rayfield:CreateWindow({
+    Name = "AtinPS",
+    LoadingTitle = "AtinPS Auto",
+    LoadingSubtitle = "By RzMods",
+    ConfigurationSaving = {
+        Enabled = false,
+    },
+    Discord = { Enabled = false }
+})
 
 -- Tabs
-local TabOn  = Window:Tab({Title = "On", Icon = "check"})
-local TabOff = Window:Tab({Title = "Off", Icon = "x"})
+local TabOn  = Window:CreateTab("On", 4483362458)
+local TabOff = Window:CreateTab("Off", 4483362458)
 
 -- ====== CONFIG ======
 local PRIVATE_PLACE_ID = 123224294054165
@@ -60,23 +67,31 @@ local function queueAuto(url)
 end
 
 -- ====== STATE ======
-local running = false
+local running  = false
 local stopFlag = false
+local statusLabel = nil
+
+local function setStatus(text)
+    if statusLabel then
+        statusLabel:Set("Status: " .. text)
+    end
+end
 
 local function runAuto()
     running = true
     stopFlag = false
+    setStatus("Running")
 
     -- CP26
     for i=1, REPEAT_26 do
-        if stopFlag then return end
+        if stopFlag then setStatus("Stopped") return end
         tpInstant(POS_CP26)
         task.wait(DELAY)
     end
 
     -- Puncak
     for i=1, REPEAT_PUNC do
-        if stopFlag then return end
+        if stopFlag then setStatus("Stopped") return end
         tpInstant(POS_PUNCAK)
         task.wait(DELAY)
     end
@@ -86,7 +101,7 @@ local function runAuto()
 
     -- Rejoin
     task.wait(ASK_DELAY)
-    if stopFlag then return end
+    if stopFlag then setStatus("Stopped") return end
 
     local ok, err = pcall(function()
         local jd = player:GetJoinData()
@@ -108,22 +123,31 @@ local function runAuto()
     end
 end
 
--- ====== UI Buttons ======
-TabOn:Button({
-    Title = "Start Auto",
+-- ====== UI ======
+statusLabel = TabOn:CreateLabel("Status: Idle")
+
+TabOn:CreateButton({
+    Name = "Start Auto",
     Callback = function()
         if not running then
             task.spawn(runAuto)
+        else
+            setStatus("Already Running")
         end
     end
 })
 
-TabOff:Button({
-    Title = "Stop Auto",
+TabOff:CreateButton({
+    Name = "Stop Auto",
     Callback = function()
         stopFlag = true
         running = false
-        Library:Notification({Title = "AtinPS", Content = "Auto stopped"})
+        setStatus("Stopped")
+        Rayfield:Notify({
+            Title = "AtinPS",
+            Content = "Auto script stopped.",
+            Duration = 3
+        })
     end
 })
 
