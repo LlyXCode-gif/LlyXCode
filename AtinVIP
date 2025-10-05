@@ -1,20 +1,18 @@
--- Atin PS with Rayfield UI (Auto ON + On/Off Tabs + Status Label)
--- Load Rayfield UI
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+-- Atin PS with Orion UI (Auto ON + On/Off Tabs + Status Label)
 
-local Window = Rayfield:CreateWindow({
-    Name = "AtinPS",
-    LoadingTitle = "AtinPS Auto",
-    LoadingSubtitle = "By RzMods",
-    ConfigurationSaving = {
-        Enabled = false,
-    },
-    Discord = { Enabled = false }
+-- Load Orion UI
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+
+local Window = OrionLib:MakeWindow({
+    Name = "AtinPS Auto",
+    HidePremium = false,
+    SaveConfig = false,
+    ConfigFolder = "AtinPS"
 })
 
 -- Tabs
-local TabOn  = Window:CreateTab("On", 4483362458)
-local TabOff = Window:CreateTab("Off", 4483362458)
+local TabOn  = Window:MakeTab({Name = "On", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+local TabOff = Window:MakeTab({Name = "Off", Icon = "rbxassetid://4483345998", PremiumOnly = false})
 
 -- ====== CONFIG ======
 local PRIVATE_PLACE_ID = 123224294054165
@@ -69,12 +67,10 @@ end
 -- ====== STATE ======
 local running  = false
 local stopFlag = false
-local statusLabel = nil
+local StatusLabel = TabOn:AddLabel("Status: Idle")
 
 local function setStatus(text)
-    if statusLabel then
-        statusLabel:Set("Status: " .. text)
-    end
+    StatusLabel:Set("Status: " .. text)
 end
 
 local function runAuto()
@@ -124,9 +120,7 @@ local function runAuto()
 end
 
 -- ====== UI ======
-statusLabel = TabOn:CreateLabel("Status: Idle")
-
-TabOn:CreateButton({
+TabOn:AddButton({
     Name = "Start Auto",
     Callback = function()
         if not running then
@@ -137,19 +131,21 @@ TabOn:CreateButton({
     end
 })
 
-TabOff:CreateButton({
+TabOff:AddButton({
     Name = "Stop Auto",
     Callback = function()
         stopFlag = true
         running = false
         setStatus("Stopped")
-        Rayfield:Notify({
-            Title = "AtinPS",
+        OrionLib:MakeNotification({
+            Name = "AtinPS",
             Content = "Auto script stopped.",
-            Duration = 3
+            Time = 3
         })
     end
 })
 
 -- ====== AUTO START ======
 task.spawn(runAuto)
+
+OrionLib:Init()
