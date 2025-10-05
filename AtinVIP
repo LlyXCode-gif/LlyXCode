@@ -1,18 +1,15 @@
--- Atin PS with Orion UI (Auto ON + On/Off Tabs + Status Label)
+-- Atin PS with Kavo UI (Auto ON + On/Off Tabs + Status Label)
 
--- Load Orion UI
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
-
-local Window = OrionLib:MakeWindow({
-    Name = "AtinPS Auto",
-    HidePremium = false,
-    SaveConfig = false,
-    ConfigFolder = "AtinPS"
-})
+-- Load Kavo UI
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("AtinPS Auto", "DarkTheme")
 
 -- Tabs
-local TabOn  = Window:MakeTab({Name = "On", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-local TabOff = Window:MakeTab({Name = "Off", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+local TabOn  = Window:NewTab("On")
+local TabOff = Window:NewTab("Off")
+
+local SectionOn  = TabOn:NewSection("Control Auto")
+local SectionOff = TabOff:NewSection("Control Auto")
 
 -- ====== CONFIG ======
 local PRIVATE_PLACE_ID = 123224294054165
@@ -67,10 +64,11 @@ end
 -- ====== STATE ======
 local running  = false
 local stopFlag = false
-local StatusLabel = TabOn:AddLabel("Status: Idle")
+local Status   = "Idle"
 
-local function setStatus(text)
-    StatusLabel:Set("Status: " .. text)
+local function setStatus(txt)
+    Status = txt
+    print("[AtinPS] Status:", txt)
 end
 
 local function runAuto()
@@ -119,33 +117,22 @@ local function runAuto()
     end
 end
 
--- ====== UI ======
-TabOn:AddButton({
-    Name = "Start Auto",
-    Callback = function()
-        if not running then
-            task.spawn(runAuto)
-        else
-            setStatus("Already Running")
-        end
-    end
-})
+-- ====== UI Controls ======
+SectionOn:NewLabel("Status: Idle (cek di console print juga)")
 
-TabOff:AddButton({
-    Name = "Stop Auto",
-    Callback = function()
-        stopFlag = true
-        running = false
-        setStatus("Stopped")
-        OrionLib:MakeNotification({
-            Name = "AtinPS",
-            Content = "Auto script stopped.",
-            Time = 3
-        })
+SectionOn:NewButton("Start Auto", "Mulai jalankan auto teleport + rejoin", function()
+    if not running then
+        task.spawn(runAuto)
+    else
+        setStatus("Already Running")
     end
-})
+end)
+
+SectionOff:NewButton("Stop Auto", "Hentikan auto script", function()
+    stopFlag = true
+    running = false
+    setStatus("Stopped")
+end)
 
 -- ====== AUTO START ======
 task.spawn(runAuto)
-
-OrionLib:Init()
